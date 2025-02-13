@@ -15,6 +15,7 @@ import { Artist, ArtistDocument } from '../schemas/artist.schema';
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateArtistDto } from './create-artist-dto';
+import { artistStorage } from '../config';
 
 @Controller('artists')
 export class ArtistsController {
@@ -28,9 +29,7 @@ export class ArtistsController {
   }
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor('photo', { dest: './public/uploads/artists' }),
-  )
+  @UseInterceptors(FileInterceptor('photo', { storage: artistStorage }))
   async create(
     @UploadedFile() file: Express.Multer.File,
     @Body() artistDto: CreateArtistDto,

@@ -15,6 +15,7 @@ import mongoose, { Model } from 'mongoose';
 import { Album, AlbumDocument } from '../schemas/album.schema';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateAlbumDto } from './create-album-dto';
+import { albumStorage } from '../config';
 
 @Controller('albums')
 export class AlbumsController {
@@ -37,9 +38,7 @@ export class AlbumsController {
     return await this.albumModel.findById(id).populate('artist').exec();
   }
   @Post()
-  @UseInterceptors(
-    FileInterceptor('coverImage', { dest: './public/uploads/albums' }),
-  )
+  @UseInterceptors(FileInterceptor('coverImage', { storage: albumStorage }))
   async create(
     @UploadedFile() file: Express.Multer.File,
     @Body() albumDto: CreateAlbumDto,
