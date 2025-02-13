@@ -9,7 +9,7 @@ export class Artist {
   name: string;
   @Prop()
   information: string;
-  @Prop()
+  @Prop({ default: null })
   photo: string;
 }
 
