@@ -7,11 +7,16 @@ import {
   Param,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { Track, TrackDocument } from '../schemas/track.schema';
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateTrackDto } from './create-track-dto';
+import { Roles } from '../roles/roles.decorator';
+import { Role } from '../roles/enums.role';
+import { RolesGuard } from '../roles/roles.guard';
+import { TokenAuthGuard } from '../token-auth/token-auth.guard';
 
 @Controller('tracks')
 export class TracksController {
@@ -26,6 +31,7 @@ export class TracksController {
     return this.trackModel.find().populate('album').exec();
   }
   @Post()
+  @UseGuards(TokenAuthGuard)
   async create(@Body() trackDto: CreateTrackDto) {
     const track = new this.trackModel({
       name: trackDto.name,
@@ -36,6 +42,8 @@ export class TracksController {
     return await track.save();
   }
   @Delete(':id')
+  @Roles(Role.Admin)
+  @UseGuards(TokenAuthGuard, RolesGuard)
   async deleteOne(@Param('id') id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new NotFoundException(`Invalid format`);

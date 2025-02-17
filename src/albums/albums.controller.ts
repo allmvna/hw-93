@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -16,6 +17,11 @@ import { Album, AlbumDocument } from '../schemas/album.schema';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateAlbumDto } from './create-album-dto';
 import { albumStorage } from '../config';
+import { Roles } from '../roles/roles.decorator';
+import { Role } from '../roles/enums.role';
+import { RolesGuard } from '../roles/roles.guard';
+import { TokenAuthGuard } from '../token-auth/token-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('albums')
 export class AlbumsController {
@@ -38,6 +44,7 @@ export class AlbumsController {
     return await this.albumModel.findById(id).populate('artist').exec();
   }
   @Post()
+  @UseGuards(TokenAuthGuard)
   @UseInterceptors(FileInterceptor('coverImage', { storage: albumStorage }))
   async create(
     @UploadedFile() file: Express.Multer.File,
@@ -52,6 +59,8 @@ export class AlbumsController {
     return await album.save();
   }
   @Delete(':id')
+  @Roles(Role.Admin)
+  @UseGuards(TokenAuthGuard, RolesGuard)
   async deleteOne(@Param('id') id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw new NotFoundException(`Invalid format`);

@@ -2,12 +2,14 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
+import { Role } from '../roles/enums.role';
 
 export interface UserDocument extends Document {
   email: string;
   password: string;
   displayName?: string;
   token: string;
+  role: Role;
   generateToken: () => void;
   checkPassword: (password: string) => Promise<boolean>;
 }
@@ -23,7 +25,9 @@ export class User {
   @Prop({ required: true })
   token: string;
   @Prop()
-  displayName: string;
+  displayName?: string;
+  @Prop({ required: true, default: Role.User, enum: Role })
+  role: Role;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
@@ -32,7 +36,7 @@ UserSchema.methods.generateToken = function (this: UserDocument) {
   this.token = randomUUID();
 };
 
-UserSchema.methods.checkPassword = function (
+UserSchema.methods.checkPassword = async function (
   this: UserDocument,
   password: string,
 ) {
